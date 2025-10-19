@@ -1,0 +1,24 @@
+# Ambiente Virtual do Python
+venv/
+
+# Arquivos de Cache do Python
+__pycache__/
+*.pyc
+
+# Configurações do VSCode (opcional, mas recomendado)
+.vscode/
+
+# Modelos de ML (são muito grandes, é melhor baixar via script)
+# Vamos adicionar isso em preparação para o Dlib
+models/
+*.dat
+
+# Logs e Resultados Brutos
+results/raw_logs/
+
+# Imagens de resultado de testes individuais
+results/*.jpg
+results/*.png
+
+# Permite que a pasta de gráficos (charts) seja salva
+!results/charts/

@@ -1,0 +1,79 @@
+# TCC: Estudo Comparativo de Bibliotecas de Reconhecimento Facial
+
+Este repositório contém o código-fonte e os experimentos para um TCC focado na avaliação de bibliotecas *open-source* de reconhecimento facial, medindo métricas de acurácia (FAR, FRR) e performance (FPS).
+
+**Bibliotecas Avaliadas:**
+* OpenCV (Haar Cascade)
+* Dlib (HOG + ResNet)
+* Face Recognition (wrapper de Dlib)
+* MTCNN
+* DeepFace
+* InsightFace
+
+---
+
+## 🚀 Como Rodar o Projeto
+
+Siga estas 3 etapas para configurar o ambiente e executar os testes.
+
+### Etapa 1: Pré-requisitos de Compilação
+
+Este projeto requer a biblioteca `dlib`, que precisa ser compilada (construída) a partir do código-fonte C++. Você **deve** instalar os seguintes pacotes no seu sistema Windows **antes** de instalar as dependências do Python.
+
+1.  **Python 3.10:**
+    * **Download:** [Python 3.10.11 (Windows Installer 64-bit)](https://www.python.org/downloads/release/python-31011/)
+    * **Obrigatório:** Marque a caixa **"Add Python 3.10 to PATH"** durante a instalação.
+
+2.  **Compilador C++ (Visual Studio Build Tools):**
+    * **Download:** [Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+    * **Obrigatório:** No instalador, marque a caixa **"Desenvolvimento para desktop com C++"** (*Desktop development with C++*).
+
+3.  **CMake:**
+    * **Download:** [CMake (Windows x64 Installer)](https://cmake.org/download/)
+    * **Obrigatório:** No instalador, selecione la opção **"Add CMake to the system PATH for all users"**.
+
+### Etapa 2: Configuração do Projeto Python
+
+Com os pré-requisitos de compilação instalados, configure o ambiente Python.
+
+1.  **Clone o Repositório:**
+    ```bash
+    git clone [https://github.com/anitandonato/tcc.git](https://github.com/anitandonato/tcc.git)
+    cd tcc
+    ```
+    *(Seu prompt deve ficar em `...\tcc>`)*
+
+2.  **Crie e Ative o Ambiente Virtual (`venv`):**
+    *(Os comandos abaixo assumem que você está dentro da pasta `tcc/`)*
+    ```bash
+    # Cria o venv na pasta atual
+    py -3.10 -m venv venv
+    
+    # Ativa o venv (Exemplo para PowerShell)
+    Set-ExecutionPolicy -Scope Process RemoteSigned -Force
+    .\venv\Scripts\activate
+    ```
+    O seu terminal deve agora mostrar `(venv)` no início da linha.
+
+3.  **Instale as Dependências:**
+    Use o arquivo `requirements.txt` para instalar todas as bibliotecas de uma só vez.
+    ```bash
+    # Atualiza o pip
+    python -m pip install --upgrade pip
+    
+    # Instala todas as bibliotecas do TCC
+    pip install -r requirements.txt
+    ```
+    **Aviso:** A instalação do `dlib` vai demorar (5-10 minutos). O terminal parecerá "travado" enquanto compila o código C++ usando as ferramentas que você instalou na Etapa 1. **Não cancele o processo.**
+
+### Etapa 3: Executar o Teste
+
+1.  **Adicione uma Imagem de Teste:**
+    * Coloque uma imagem (ex: `test1.jpg`) dentro da pasta `data/test_images/`.
+
+2.  **Execute o `main.py`:**
+    Com o `(venv)` ativo, execute:
+    ```bash
+    python main.py
+    ```
+    O script irá rodar os testes de detecção e salvará as imagens com as caixas delimitadoras na pasta `results/`.

@@ -68,10 +68,16 @@ Com os pré-requisitos de compilação instalados, configure o ambiente Python.
 
 ### Etapa 3: Executar o Teste
 
-1.  **Adicione uma Imagem de Teste:**
+1.  **Baixe os Modelos do Dlib:**
+    * Crie uma pasta chamada `models/` dentro de `tcc/`.
+    * Baixe e descompacte os arquivos `.dat` abaixo dentro da pasta `models/`:
+        * [shape_predictor_68_face_landmarks.dat.bz2](http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2)
+        * [dlib_face_recognition_resnet_model_v1.dat.bz2](http://dlib.net/files/dlib_face_recognition_resnet_model_v1.dat.bz2)
+
+2.  **Adicione uma Imagem de Teste:**
     * Coloque uma imagem (ex: `test1.jpg`) dentro da pasta `data/test_images/`.
 
-2.  **Execute o `main.py`:**
+3.  **Execute o `main.py`:**
     Com o `(venv)` ativo, execute:
     ```bash
     python main.py

@@ -1,21 +1,22 @@
 import cv2
 import time
+
+# --- Importa todos os 6 wrappers ---
 from libs.opencv_lib import OpenCVLib
 from libs.face_recognition_lib import FaceRecognitionLib
 from libs.dlib_lib import DlibLib
 from libs.mtcnn_lib import MTCNNLib
+from libs.deepface_lib import DeepFaceLib
+from libs.insightface_lib import InsightFaceLib
 
 def main():
     print("Iniciando o TCC de Comparação de Reconhecimento Facial...")
 
-    # --- DEFINA A VARIÁVEL AQUI (NO TOPO) ---
     image_path = 'data/test_images/test1.jpg'
     
-    # --- Carregue uma imagem de teste ---
     try:
         image = cv2.imread(image_path)
         if image is None:
-            # Agora 'image_path' está definida e pode ser usada no erro
             print(f"Erro: Não foi possível carregar a imagem em: {image_path}")
             print("Por favor, adicione uma imagem de teste nesta pasta.")
             return
@@ -23,7 +24,6 @@ def main():
         print(f"Erro ao ler imagem: {e}")
         return
 
-    # --- ESTA LINHA (A SUA LINHA 9) AGORA VAI FUNCIONAR ---
     print(f"Imagem de teste '{image_path}' carregada com sucesso.\n")
     
     # --- Inicialize os wrappers ---
@@ -31,12 +31,19 @@ def main():
     face_rec_wrapper = FaceRecognitionLib(model='hog')
     dlib_wrapper = DlibLib()
     mtcnn_wrapper = MTCNNLib()
+    deepface_vgg_dlib = DeepFaceLib(
+        model_name='VGG-Face', #detector simples utilizando o reconhecimento vgg com opencv
+        detector_backend='dlib' # a junção de VGG+MTCNN(OpenCV também) como backend falhou ao encontrar o rosto -> demonstrando incompatibilidade interna ou bug na maneira que o DeepFace lida com MTCNN
+    )
+    insightface_wrapper = InsightFaceLib()
     
     wrappers = {
         "OpenCV (Haar)": opencv_wrapper,
         "FaceRecognition (Dlib-HOG)": face_rec_wrapper,
         "Dlib (HOG)": dlib_wrapper,
-        "MTCNN": mtcnn_wrapper
+        "MTCNN": mtcnn_wrapper,
+        "DeepFace (VGG+Dlib)": deepface_vgg_dlib,
+        "InsightFace (Buffalo_L)": insightface_wrapper
     }
 
     # --- Execute o teste de detecção ---

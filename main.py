@@ -12,7 +12,7 @@ from libs.insightface_lib import InsightFaceLib
 def main():
     print("Iniciando o TCC de Comparação de Reconhecimento Facial...")
 
-    image_path = r'C:\Users\anita\Documents\tcc\tcc\data\test_images\test1.jpg'
+    image_path = r'C:\Users\anita\Documents\tcc\data\test_images\test3.jpg'
     
     try:
         image = cv2.imread(image_path)

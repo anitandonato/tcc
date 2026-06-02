@@ -50,14 +50,14 @@ def _build_wrappers() -> dict:
     }
 
 
-def _compute_scores(wrapper, pairs: pd.DataFrame, log) -> tuple[list, list, int]:
+def _compute_scores(wrapper, pairs: pd.DataFrame, log) -> tuple[list, list, list, int]:
     """
     Gera scores para todos os pares.
 
-    Retorna (scores, labels, n_skipped).
+    Retorna (scores, labels, paths, n_skipped).
     Pares com embedding None sao descartados e contados em n_skipped.
     """
-    scores, labels = [], []
+    scores, labels, paths = [], [], []
     n_skipped = 0
     total = len(pairs)
 
@@ -91,11 +91,12 @@ def _compute_scores(wrapper, pairs: pd.DataFrame, log) -> tuple[list, list, int]
 
         scores.append(score)
         labels.append(label)
+        paths.append((row["img1_path"], row["img2_path"]))
 
         if (i + 1) % 100 == 0:
             print(f"    {i + 1}/{total} pares processados...")
 
-    return scores, labels, n_skipped
+    return scores, labels, paths, n_skipped
 
 
 def run_accuracy_test(dataset_name: str, genuine_csv: Path, impostor_csv: Path) -> list[dict]:
@@ -120,7 +121,7 @@ def run_accuracy_test(dataset_name: str, genuine_csv: Path, impostor_csv: Path) 
         with get_logger(f"{dataset_name.lower()}_{lib_key}") as log:
             log.info(f"Dataset={dataset_name} | Pares={len(pairs)}")
 
-            scores, labels, n_skipped = _compute_scores(wrapper, pairs, log)
+            scores, labels, paths, n_skipped = _compute_scores(wrapper, pairs, log)
             n_valid = len(scores)
 
             if n_valid < 10:
@@ -151,7 +152,8 @@ def run_accuracy_test(dataset_name: str, genuine_csv: Path, impostor_csv: Path) 
             # Scores brutos para reanalise
             scores_csv = SCORES_DIR / f"{dataset_name.lower()}_{lib_key}_scores.csv"
             pd.DataFrame({
-                "img1_path": pairs["img1_path"].iloc[:n_valid + n_skipped],
+                "img1_path": [p[0] for p in paths],
+                "img2_path": [p[1] for p in paths],
                 "score": scores,
                 "label": labels,
             }).to_csv(scores_csv, index=False)

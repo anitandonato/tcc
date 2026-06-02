@@ -3,9 +3,9 @@ from deepface import DeepFace
 import numpy as np
 
 class DeepFaceLib:
-    def __init__(self, 
-                 model_name='VGG-Face', 
-                 detector_backend='mtcnn', 
+    def __init__(self,
+                 model_name='VGG-Face',
+                 detector_backend='retinaface',
                  distance_metric='cosine'):
         """
         Inicializa o wrapper da biblioteca DeepFace.
@@ -35,16 +35,16 @@ class DeepFaceLib:
             )
             
             boxes = []
-            if face_objs: # 'face_objs' é uma lista
-                for face_obj in face_objs:
-                    # Extrai a tupla (x, y, w, h) da área facial
-                    x, y, w, h = face_obj['facial_area'] 
+            for face_obj in face_objs:
+                area = face_obj['facial_area']   # dict: {'x':…,'y':…,'w':…,'h':…}
+                x, y, w, h = area['x'], area['y'], area['w'], area['h']
+                if w > 0 and h > 0:
                     boxes.append((x, y, w, h))
-            
-            return boxes # Retorna a lista de tuplas [(x, y, w, h), ...]
-        
+
+            return boxes
+
         except Exception as e:
-            # print(f"DeepFace detect error: {e}")
+            print(f"DeepFace detect error: {e}")
             return []
 
     def get_embedding(self, image):

@@ -1,113 +1,147 @@
-import cv2
-import time
+"""
+Benchmark de desempenho das 3 bibliotecas ativas.
+
+Estrategia de medicao por biblioteca:
+  1. Warm-up  : 1 execucao de detect() descartada
+  2. Memoria  : 1 execucao com MemoryTracker -> peak_mb
+  3. Tempo    : NUM_RUNS execucoes com perf_counter -> avg_ms, fps
+
+Saida: results/performance_summary.csv e results/raw_logs/{lib}_log.txt
+"""
+
 import os
 import sys
+import time
+import cv2
 import pandas as pd
+from pathlib import Path
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(str(Path(__file__).parent.parent))
 
+import config
 from libs.opencv_lib import OpenCVLib
-from libs.face_recognition_lib import FaceRecognitionLib
 from libs.dlib_lib import DlibLib
-from libs.mtcnn_lib import MTCNNLib
 from libs.deepface_lib import DeepFaceLib
-from libs.insightface_lib import InsightFaceLib
-from utils.timer import Timer
+from utils.metrics import MemoryTracker
+from utils.logger import get_logger
 
-def run_performance_test(image_path, num_runs=50):
+
+def _deepface_device() -> str:
     try:
-        image_path_abs = os.path.abspath(image_path)
-        image = cv2.imread(image_path_abs)
-        if image is None:
-            print(f"Erro: Não foi possível carregar a imagem em: {image_path_abs}")
-            return
-    except Exception as e:
-        print(f"Erro ao ler imagem: {e}")
+        import tensorflow as tf
+        return "GPU" if tf.config.list_physical_devices("GPU") else "CPU"
+    except Exception:
+        return "N/A"
+
+
+def _build_wrappers() -> dict:
+    return {
+        "OpenCV (Haar)": (OpenCVLib(), "CPU"),
+        "Dlib (HOG)": (DlibLib(), "CPU"),
+        "DeepFace (VGG+RetinaFace)": (
+            DeepFaceLib(model_name="VGG-Face", detector_backend="retinaface"),
+            _deepface_device(),
+        ),
+    }
+
+
+def run_performance_test(image_path=None, num_runs: int = None):
+    image_path = Path(image_path) if image_path else config.TEST_IMAGE
+    num_runs = num_runs if num_runs is not None else config.NUM_RUNS
+
+    image = cv2.imread(str(image_path))
+    if image is None:
+        print(f"[ERRO] Imagem nao encontrada: {image_path}")
+        print("Adicione uma imagem em data/test_images/test3.jpg")
         return
 
-    print(f"Imagem de teste '{image_path_abs}' carregada. Dimensões: {image.shape}")
-    print(f"Iniciando teste de performance com {num_runs} execuções por biblioteca...\n")
+    print(f"Imagem: {image_path}  {image.shape}")
+    print(f"Execucoes: {config.WARMUP_RUNS} warm-up + {num_runs} medicoes\n")
 
-    # --- Inicialização ---
-    init_timer = Timer()
-    
-    init_timer.checkpoint("Iniciando OpenCV")
-    wrappers = {"OpenCV (Haar)": OpenCVLib()}
-    
-    init_timer.checkpoint("Iniciando FaceRecognition")
-    wrappers["FaceRecognition (HOG)"] = FaceRecognitionLib(model='hog')
-    
-    init_timer.checkpoint("Iniciando Dlib")
-    wrappers["Dlib (HOG)"] = DlibLib()
-    
-    init_timer.checkpoint("Iniciando MTCNN")
-    wrappers["MTCNN"] = MTCNNLib()
-    
-    init_timer.checkpoint("Iniciando DeepFace")
-    wrappers["DeepFace (Dlib)"] = DeepFaceLib(detector_backend='dlib')
-    
-    init_timer.checkpoint("Iniciando InsightFace")
-    wrappers["InsightFace (Buffalo_L)"] = InsightFaceLib()
-    
-    init_timer.checkpoint("Fim das Inicializações")
-    
-    print("\n--- Iniciando Teste de Inferência ---")
-
+    wrappers = _build_wrappers()
     results = []
-    
-    for name, wrapper in wrappers.items():
-        print(f"Testando: {name}")
-        total_time = 0
-        faces_found = 0 # Variável para guardar o nº de faces
-        
-        try:
-            # Executa N vezes
+
+    for name, (wrapper, device) in wrappers.items():
+        lib_key = name.split()[0].lower()
+        print(f"[{name}]  device={device}")
+
+        with get_logger(lib_key) as log:
+            log.info(f"Benchmark iniciado | device={device} | num_runs={num_runs}")
+
+            # 1. Warm-up
+            try:
+                wrapper.detect(image.copy())
+                log.info("Warm-up concluido")
+            except Exception as e:
+                log.error(f"Warm-up falhou: {e}")
+                print(f"  Warm-up ERRO: {e}")
+
+            # 2. Memoria (1 run isolado)
+            try:
+                with MemoryTracker() as mem:
+                    wrapper.detect(image.copy())
+                peak_mb = round(mem.peak_mb, 2)
+                log.info(f"Memoria pico: {peak_mb} MB")
+            except Exception as e:
+                log.error(f"Medicao de memoria falhou: {e}")
+                peak_mb = None
+
+            # 3. Tempo (NUM_RUNS runs)
+            total_time = 0.0
+            faces_found = 0
+            errors = 0
+
             for i in range(num_runs):
-                start = time.perf_counter()
-                bounding_boxes = wrapper.detect(image.copy())
-                end = time.perf_counter()
-                total_time += (end - start)
-                
-                # Na última execução, guardamos quantas faces achou
-                if i == num_runs - 1:
-                    faces_found = len(bounding_boxes)
-            
-            avg_time_s = total_time / num_runs
-            avg_time_ms = avg_time_s * 1000
-            fps = 1.0 / avg_time_s if avg_time_s > 0 else 0
-            
-            print(f"  -> Tempo Médio: {avg_time_ms:.2f} ms")
-            print(f"  -> FPS: {fps:.2f}")
-            print(f"  -> Faces Encontradas: {faces_found}\n") # Mostra no log
-            
-            results.append({
-                "Biblioteca": name,
-                "Tempo Medio (ms)": avg_time_ms,
+                try:
+                    start = time.perf_counter()
+                    boxes = wrapper.detect(image.copy())
+                    end = time.perf_counter()
+                    total_time += (end - start)
+                    if i == num_runs - 1:
+                        faces_found = len(boxes)
+                except Exception as e:
+                    log.error(f"Run {i+1} falhou: {e}")
+                    errors += 1
+
+            successful = num_runs - errors
+            if successful > 0:
+                avg_ms = round((total_time / successful) * 1000, 2)
+                fps = round(1000 / avg_ms, 2) if avg_ms > 0 else 0.0
+            else:
+                avg_ms = fps = None
+
+            print(f"  Tempo medio : {avg_ms} ms")
+            print(f"  FPS         : {fps}")
+            print(f"  Memoria     : {peak_mb} MB")
+            print(f"  Faces       : {faces_found}")
+            print(f"  Erros       : {errors}/{num_runs}\n")
+
+            log.log_summary({
+                "Tempo_medio_ms": avg_ms,
                 "FPS": fps,
-                "Faces Encontradas": faces_found # <--- NOVA COLUNA
-            })
-            
-        except Exception as e:
-            print(f"  -> ERRO AO TESTAR {name}: {e}")
-            results.append({
-                "Biblioteca": name,
-                "Tempo Medio (ms)": "ERRO",
-                "FPS": "ERRO",
-                "Faces Encontradas": 0
+                "Memoria_pico_MB": peak_mb,
+                "Faces_encontradas": faces_found,
+                "Device": device,
+                "Erros": errors,
             })
 
-    # --- Salvar Resultados ---
+        results.append({
+            "Biblioteca": name,
+            "Tempo_medio_ms": avg_ms,
+            "FPS": fps,
+            "Memoria_pico_MB": peak_mb,
+            "Device": device,
+            "Faces_encontradas": faces_found,
+            "Erros": errors,
+        })
+
+    # Salvar CSV
+    config.RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     df = pd.DataFrame(results)
-    save_path = "results/performance_summary.csv"
-    os.makedirs("results", exist_ok=True)
-    df.to_csv(save_path, index=False)
-    
-    print(f"\nTeste concluído! Resultados salvos em '{save_path}'")
-    print(df.to_string())
+    df.to_csv(config.PERF_CSV, index=False)
+    print(f"Resultados salvos em: {config.PERF_CSV}")
+    print(df.to_string(index=False))
+
 
 if __name__ == "__main__":
-    test_image_file = "data/test_images/test3.jpg"
-    if os.path.exists(test_image_file):
-        run_performance_test(test_image_file, num_runs=50)
-    else:
-        print("Imagem não encontrada.")
+    run_performance_test()

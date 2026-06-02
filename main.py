@@ -1,18 +1,15 @@
 import cv2
 import time
 
-# --- Importa todos os 6 wrappers ---
+import config
 from libs.opencv_lib import OpenCVLib
-from libs.face_recognition_lib import FaceRecognitionLib
 from libs.dlib_lib import DlibLib
-from libs.mtcnn_lib import MTCNNLib
 from libs.deepface_lib import DeepFaceLib
-from libs.insightface_lib import InsightFaceLib
 
 def main():
     print("Iniciando o TCC de Comparação de Reconhecimento Facial...")
 
-    image_path = r'C:\Users\anita\Documents\tcc\data\test_images\test3.jpg'
+    image_path = config.TEST_IMAGE
     
     try:
         image = cv2.imread(image_path)
@@ -27,23 +24,10 @@ def main():
     print(f"Imagem de teste '{image_path}' carregada com sucesso.\n")
     
     # --- Inicialize os wrappers ---
-    opencv_wrapper = OpenCVLib()
-    face_rec_wrapper = FaceRecognitionLib(model='hog')
-    dlib_wrapper = DlibLib()
-    mtcnn_wrapper = MTCNNLib()
-    deepface_vgg_dlib = DeepFaceLib(
-        model_name='VGG-Face', #detector simples utilizando o reconhecimento vgg com opencv
-        detector_backend='dlib' # a junção de VGG+MTCNN(OpenCV também) como backend falhou ao encontrar o rosto -> demonstrando incompatibilidade interna ou bug na maneira que o DeepFace lida com MTCNN
-    )
-    insightface_wrapper = InsightFaceLib()
-    
     wrappers = {
-        "OpenCV (Haar)": opencv_wrapper,
-        "FaceRecognition (Dlib-HOG)": face_rec_wrapper,
-        "Dlib (HOG)": dlib_wrapper,
-        "MTCNN": mtcnn_wrapper,
-        "DeepFace (VGG+Dlib)": deepface_vgg_dlib,
-        "InsightFace (Buffalo_L)": insightface_wrapper
+        "OpenCV (Haar)": OpenCVLib(),
+        "Dlib (HOG)": DlibLib(),
+        "DeepFace (VGG+RetinaFace)": DeepFaceLib(model_name='VGG-Face', detector_backend='retinaface'),
     }
 
     # --- Execute o teste de detecção ---

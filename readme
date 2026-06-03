@@ -91,7 +91,7 @@ ESTRUTURA DO PROJETO
   |-- libs/                       Wrappers padronizados
   |   |-- opencv_lib.py           Haar Cascade + HOG descriptor
   |   |-- dlib_lib.py             HOG detector + ResNet embedding (128D)
-  |   `-- deepface_lib.py         VGG-Face + RetinaFace detector (2048D)
+  |   `-- deepface_lib.py         VGG-Face + RetinaFace detector (4096D)
   |
   |-- data/
   |   |-- lfw/lfw-funneled/       Dataset LFW (5.749 pessoas)
@@ -149,36 +149,39 @@ HISTORICO DO QUE JA FOI FEITO
 
   [CONCLUIDO] Benchmark de desempenho executado
     - results/performance_summary.csv gerado
-    - Resultados (CPU, sem GPU ativa):
+    - Resultados (CPU, Windows):
         OpenCV (Haar)          :  48 ms  | 20.8 FPS |  3 MB
         Dlib  (HOG)            : 230 ms  |  4.4 FPS |  3 MB
         DeepFace (VGG+Retina)  : 6887 ms |  0.1 FPS | 79 MB
 
-  [EM ANDAMENTO] Configurar GPU para DeepFace
-    - CUDA 13.3 instalado (incompativel com TF 2.20)
-    - Instalando CUDA Toolkit 12.5 (compativel)
-    - cuDNN 9.x instalado
-    - Aguardando verificacao apos PATH configurado
+  [CONCLUIDO] Testes de acuracia 1:1 executados -- dataset LFW
+    - 4.000 pares avaliados (2.000 genuinos + 2.000 impostores)
+    - 200 pessoas, seed=42 (reprodutivel)
+    - Resultados (Linux, GPU ativa para DeepFace):
+        OpenCV (Haar+HOG)         : EER 0.3718 | Acuracia 62.8% | 3937/4000 validos
+        Dlib  (HOG+ResNet)        : EER 0.0173 | Acuracia 98.2% | 3928/4000 validos
+        DeepFace (VGG+RetinaFace) : EER 0.0695 | Acuracia 93.1% | 4000/4000 validos
+    - results/accuracy_summary.csv e results/scores/ gerados
+
+  [CONCLUIDO] GPU configurada para DeepFace no Linux
+    - CUDA funciona no Linux (RTX 4050 Laptop, cuDNN 9.x)
+    - Windows nativo: TF 2.11+ nao tem suporte oficial a GPU; DeepFace roda em CPU
+    - Codigo identico nos dois ambientes; TF usa GPU automaticamente quando disponivel
 
 ================================================================================
 O QUE FALTA
 ================================================================================
 
-  1. [GPU] Configurar PATH do CUDA 12.5 e verificar GPU no TensorFlow
-     -> Ver secao "CONFIGURAR CUDA 12.5 NO PATH" acima
-
-  2. [DATASET] Montar a base propria controlada
+  1. [DATASET] Montar a base propria controlada
      -> Fotografar 10 pessoas x 20 imagens cada
      -> Condicoes: 3 iluminacoes x 2 angulos x 2 distancias
-     -> Colocar em: data/known_faces/pessoa_01/ ... pessoa_10/
+     -> Colocar em: data/known_faces/<nome_pessoa>/img_01.jpg ... img_20.jpg
      -> Rodar: python data/prepare_own_base.py
+     -> Rodar: python tests/accuracy_tests.py (so a parte BasePropr sera reprocessada)
 
-  3. [TESTES] Rodar os testes de acuracia 1:1
-     -> python tests/accuracy_tests.py
-     -> Duracao: ~40 min (GPU ativa) | ~5 horas (CPU)
-
-  4. [GRAFICOS] Gerar os graficos comparativos
+  2. [GRAFICOS] Gerar os graficos comparativos
      -> python utils/plotter.py
+     -> Requer: accuracy_summary.csv e performance_summary.csv completos
 
 ================================================================================
 PASSO A PASSO PARA EXECUTAR (ordem correta)

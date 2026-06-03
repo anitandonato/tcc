@@ -65,21 +65,24 @@ class DeepFaceLib:
             else:
                 return None
         except Exception as e:
-            # print(f"DeepFace get_embedding error: {e}")
+            print(f"DeepFace get_embedding error: {e}")
             return None
 
     def compare(self, embedding1, embedding2):
         """
-        Compara dois embeddings usando a métrica de distância do DeepFace.
+        Compara dois embeddings usando a métrica de distância configurada.
         """
         if embedding1 is None or embedding2 is None:
             return None
-        
+
+        a = np.asarray(embedding1, dtype=float)
+        b = np.asarray(embedding2, dtype=float)
+
         if self.distance_metric == 'cosine':
-            from deepface.commons import distance as dst
-            return dst.findCosineDistance(embedding1, embedding2)
-        elif self.distance_metric == 'euclidean':
-            from deepface.commons import distance as dst
-            return dst.findEuclideanDistance(embedding1, embedding2)
+            norm_a = np.linalg.norm(a)
+            norm_b = np.linalg.norm(b)
+            if norm_a == 0 or norm_b == 0:
+                return None
+            return float(1.0 - np.dot(a, b) / (norm_a * norm_b))
         else:
-            return np.linalg.norm(embedding1 - embedding2)
+            return float(np.linalg.norm(a - b))

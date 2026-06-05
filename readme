@@ -149,10 +149,10 @@ HISTORICO DO QUE JA FOI FEITO
 
   [CONCLUIDO] Benchmark de desempenho executado
     - results/performance_summary.csv gerado
-    - Resultados (CPU, Windows):
-        OpenCV (Haar)          :  48 ms  | 20.8 FPS |  3 MB
-        Dlib  (HOG)            : 230 ms  |  4.4 FPS |  3 MB
-        DeepFace (VGG+Retina)  : 6887 ms |  0.1 FPS | 79 MB
+    - Resultados (CPU, Windows, imagem de rosto unico):
+        OpenCV (Haar)          :    9 ms  | 107 FPS |  1 MB
+        Dlib  (HOG)            :   85 ms  |  12 FPS |  1 MB
+        DeepFace (VGG+Retina)  : 4464 ms  |   0 FPS | 51 MB
 
   [CONCLUIDO] Testes de acuracia 1:1 executados -- dataset LFW
     - 4.000 pares avaliados (2.000 genuinos + 2.000 impostores)
@@ -168,20 +168,37 @@ HISTORICO DO QUE JA FOI FEITO
     - Windows nativo: TF 2.11+ nao tem suporte oficial a GPU; DeepFace roda em CPU
     - Codigo identico nos dois ambientes; TF usa GPU automaticamente quando disponivel
 
+  [CONCLUIDO] Base propria controlada preparada e avaliada
+    - 10 pessoas fotografadas em ambiente controlado
+    - Pares gerados com prepare_own_base.py (seed=42, reprodutivel)
+    - 4.092 pares avaliados (2.046 genuinos + 2.046 impostores)
+    - Resultados (Linux, GPU ativa para DeepFace):
+        OpenCV (Haar+HOG)         : EER 0.4047 | Acuracia 59.5% | 3938/4092 validos
+        Dlib  (HOG+ResNet)        : EER 0.0093 | Acuracia 99.1% | 3628/4092 validos
+        DeepFace (VGG+RetinaFace) : EER 0.0547 | Acuracia 94.5% | 4092/4092 validos
+
+  [CONCLUIDO] Benchmark de desempenho com imagem de rosto unico
+    - test3.jpg substituido por imagem de rosto unico (632x463px)
+    - Resultados Linux/GPU (performance_summary_linux_gpu.csv):
+        OpenCV (Haar)          :  14 ms  | 73.4 FPS |  1 MB  (CPU)
+        Dlib  (HOG)            :  67 ms  | 15.0 FPS |  1 MB  (CPU)
+        DeepFace (VGG+Retina)  : 116 ms  |  8.6 FPS | 46 MB  (GPU)
+    - Resultado Windows/CPU disponivel em performance_summary_windows_cpu.csv
+
+  [CONCLUIDO] Graficos comparativos gerados (ABNT, preto e branco)
+    - roc_lfw.png, roc_basepropr.png, eer_comparison.png
+    - performance_combined.png, memory_usage.png
+    - Salvos em results/charts/
+
 ================================================================================
-O QUE FALTA
+PROJETO CONCLUIDO
 ================================================================================
 
-  1. [DATASET] Montar a base propria controlada
-     -> Fotografar 10 pessoas x 20 imagens cada
-     -> Condicoes: 3 iluminacoes x 2 angulos x 2 distancias
-     -> Colocar em: data/known_faces/<nome_pessoa>/img_01.jpg ... img_20.jpg
-     -> Rodar: python data/prepare_own_base.py
-     -> Rodar: python tests/accuracy_tests.py (so a parte BasePropr sera reprocessada)
-
-  2. [GRAFICOS] Gerar os graficos comparativos
-     -> python utils/plotter.py
-     -> Requer: accuracy_summary.csv e performance_summary.csv completos
+  Todos os experimentos foram executados e os resultados estao no GitHub.
+  Falta apenas a escrita do documento do TCC:
+    - Analise e discussao dos resultados
+    - Conclusao comparativa entre as bibliotecas
+    - Insercao dos graficos e tabelas no documento ABNT
 
 ================================================================================
 PASSO A PASSO PARA EXECUTAR (ordem correta)
@@ -238,8 +255,10 @@ SAIDAS GERADAS
 ================================================================================
 
   results/
-  |-- performance_summary.csv    Tempo, FPS, memoria por biblioteca
-  |-- accuracy_summary.csv       EER, FAR, FRR por biblioteca x dataset
-  |-- scores/                    Scores brutos e CSVs de curva ROC
-  |-- charts/                    Graficos PNG (preto e branco)
-  `-- raw_logs/                  Logs detalhados por biblioteca e execucao
+  |-- performance_summary.csv             Tempo, FPS, memoria (Linux/GPU)
+  |-- performance_summary_linux_gpu.csv   Idem -- copia explicitamente rotulada
+  |-- performance_summary_windows_cpu.csv Benchmark CPU (Windows) para comparacao
+  |-- accuracy_summary.csv               EER, FAR, FRR por biblioteca x dataset
+  |-- scores/                            Scores brutos e CSVs de curva ROC
+  |-- charts/                            Graficos PNG (preto e branco, ABNT)
+  `-- raw_logs/                          Logs detalhados por biblioteca e execucao

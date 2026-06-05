@@ -1,0 +1,4 @@
+Biblioteca,Tempo_medio_ms,FPS,Memoria_pico_MB,Device,Faces_encontradas,Erros
+OpenCV (Haar),48.07,20.8,3.14,CPU,26,0
+Dlib (HOG),229.66,4.35,3.14,CPU,27,0
+DeepFace (VGG+RetinaFace),6887.11,0.15,79.35,CPU,28,0

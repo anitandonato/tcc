@@ -147,12 +147,25 @@ HISTORICO DO QUE JA FOI FEITO
     - 423 pessoas com 5+ imagens (elegíveis para o protocolo)
     - 200 pessoas selecionadas, 2.000 pares genuinos + 2.000 impostores gerados
 
-  [CONCLUIDO] Benchmark de desempenho executado
-    - results/performance_summary.csv gerado
-    - Resultados (CPU, Windows, imagem de rosto unico):
-        OpenCV (Haar)          :    9 ms  | 107 FPS |  1 MB
-        Dlib  (HOG)            :   85 ms  |  12 FPS |  1 MB
-        DeepFace (VGG+Retina)  : 4464 ms  |   0 FPS | 51 MB
+  [CONCLUIDO] Benchmark de desempenho executado (revisado pelo orientador)
+    - Metodologia: detect() rodado uma vez por imagem em dois datasets
+        Base propria : 205 imagens reais de celular
+        LFW          : 300 imagens amostradas (seed=42)
+    - Metricas: tempo medio, desvio padrao, FPS, pico de memoria
+    - Resultados Linux/GPU (performance_summary_linux_gpu_v2.csv):
+
+        Dataset     Biblioteca              Tempo medio  Std     FPS    Memoria
+        -------------------------------------------------------------------------
+        BasePropr   OpenCV (Haar+HOG)       377 ms       316 ms    2.7   93 MB
+        BasePropr   Dlib  (HOG)            2952 ms      1616 ms    0.3   93 MB
+        BasePropr   DeepFace (VGG+Retina)   244 ms       343 ms    4.1  667 MB (GPU)
+        LFW         OpenCV (Haar+HOG)         8 ms         2 ms  118.2    0 MB
+        LFW         Dlib  (HOG)              14 ms         1 ms   72.2    0 MB
+        LFW         DeepFace (VGG+Retina)   115 ms         4 ms    8.7   30 MB (GPU)
+
+    - Nota: desvio padrao alto na Base Propria reflete diferenca de resolucao
+      entre fotos de celular (alta resolucao) e imagens LFW (250x250 px padrao)
+    - Resultado Windows/CPU pendente (performance_summary_windows_cpu_v2.csv)
 
   [CONCLUIDO] Testes de acuracia 1:1 executados -- dataset LFW
     - 4.000 pares avaliados (2.000 genuinos + 2.000 impostores)
@@ -177,13 +190,10 @@ HISTORICO DO QUE JA FOI FEITO
         Dlib  (HOG+ResNet)        : EER 0.0093 | Acuracia 99.1% | 3628/4092 validos
         DeepFace (VGG+RetinaFace) : EER 0.0547 | Acuracia 94.5% | 4092/4092 validos
 
-  [CONCLUIDO] Benchmark de desempenho com imagem de rosto unico
-    - test3.jpg substituido por imagem de rosto unico (632x463px)
-    - Resultados Linux/GPU (performance_summary_linux_gpu.csv):
-        OpenCV (Haar)          :  14 ms  | 73.4 FPS |  1 MB  (CPU)
-        Dlib  (HOG)            :  67 ms  | 15.0 FPS |  1 MB  (CPU)
-        DeepFace (VGG+Retina)  : 116 ms  |  8.6 FPS | 46 MB  (GPU)
-    - Resultado Windows/CPU disponivel em performance_summary_windows_cpu.csv
+  [SUPERADO] Benchmark de desempenho -- versao anterior (imagem unica)
+    - Metodologia antiga substituida: usava 1 imagem x 50 repeticoes
+    - Arquivos antigos: performance_summary_linux_gpu.csv, performance_summary_windows_cpu.csv
+    - Substituido pelo benchmark multi-imagem acima (recomendacao do orientador)
 
   [CONCLUIDO] Graficos comparativos gerados (ABNT, preto e branco)
     - roc_lfw.png, roc_basepropr.png, eer_comparison.png
@@ -194,8 +204,13 @@ HISTORICO DO QUE JA FOI FEITO
 PROJETO CONCLUIDO
 ================================================================================
 
-  Todos os experimentos foram executados e os resultados estao no GitHub.
-  Falta apenas a escrita do documento do TCC:
+  Experimentos concluidos. Ajustes solicitados pelo orientador em andamento:
+    - [PENDENTE] Benchmark de desempenho Windows/CPU com metodologia revisada
+    - [PENDENTE] Adicionar coluna "Acuracia sobre total de pares" na Tabela de acuracia
+                 (descartes do Dlib contados como erro: base propria 99.1% -> 87.9%)
+    - [PENDENTE] Ajustes de formatacao no documento (Quadro vs Tabela, figuras)
+    - [PENDENTE] Discussao do vies de selecao do Dlib no texto
+  Falta ainda:
     - Analise e discussao dos resultados
     - Conclusao comparativa entre as bibliotecas
     - Insercao dos graficos e tabelas no documento ABNT

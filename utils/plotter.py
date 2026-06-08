@@ -26,8 +26,8 @@ import config
 # ---------------------------------------------------------------------------
 
 LIB_STYLES = {
-    "OpenCV (Haar+HOG)":   {"hatch": "",   "color": "#cccccc", "linestyle": "-",  "edgecolor": "black"},
-    "Dlib (HOG)":          {"hatch": "//", "color": "#888888", "linestyle": "--", "edgecolor": "black"},
+    "OpenCV (Haar+HOG)":         {"hatch": "",   "color": "#cccccc", "linestyle": "-",  "edgecolor": "black"},
+    "Dlib (HOG)":                {"hatch": "//", "color": "#888888", "linestyle": "--", "edgecolor": "black"},
     "DeepFace (VGG+RetinaFace)": {"hatch": "xx", "color": "#444444", "linestyle": "-.", "edgecolor": "black"},
 }
 
@@ -54,46 +54,87 @@ def _save(fig, filename: str):
 
 
 # ---------------------------------------------------------------------------
-# 1. Performance: tempo (ms) e FPS
+# 1. Performance: tempo (ms) com desvio padrao, por dataset
 # ---------------------------------------------------------------------------
 
+def _short_lib(name: str) -> str:
+    return name.split("(")[0].strip()
+
+
 def plot_performance(df: pd.DataFrame):
-    libs = df["Biblioteca"].tolist()
-    x = np.arange(len(libs))
-    width = 0.35
-
-    fig, ax1 = plt.subplots(figsize=(8, 5))
-    ax2 = ax1.twinx()
-
-    for i, lib in enumerate(libs):
-        style = LIB_STYLES.get(lib, {"hatch": "", "color": "#aaaaaa", "edgecolor": "black"})
-        tempo = df.loc[df["Biblioteca"] == lib, "Tempo_medio_ms"].values[0]
-        fps   = df.loc[df["Biblioteca"] == lib, "FPS"].values[0]
-
-        b1 = ax1.bar(x[i] - width / 2, tempo, width,
-                     color=style["color"], hatch=style["hatch"],
-                     edgecolor=style["edgecolor"], label=lib if i == 0 else "")
-        ax2.bar(x[i] + width / 2, fps, width,
-                color="white", hatch=style["hatch"],
-                edgecolor=style["edgecolor"])
-
-    ax1.set_ylabel("Tempo medio de inferencia (ms)")
-    ax2.set_ylabel("FPS (quadros por segundo)")
-    ax1.set_xticks(x)
-    ax1.set_xticklabels(libs, rotation=20, ha="right", fontsize=9)
-    ax1.set_title("Desempenho: Tempo de Inferencia e FPS por Biblioteca")
-
-    # Legenda manual de hatches
     from matplotlib.patches import Patch
-    patches = [
-        Patch(facecolor=s["color"], hatch=s["hatch"], edgecolor="black", label=lib)
-        for lib, s in LIB_STYLES.items()
-    ]
-    legend_extra = [
-        Patch(facecolor="#cccccc", edgecolor="black", label="Barra esquerda = Tempo (ms)"),
-        Patch(facecolor="white",   edgecolor="black", label="Barra direita  = FPS"),
-    ]
-    ax1.legend(handles=patches + legend_extra, fontsize=8, loc="upper left")
+
+    has_dataset = "Dataset" in df.columns and df["Dataset"].nunique() > 1
+
+    if has_dataset:
+        datasets = df["Dataset"].unique()
+        libs = df["Biblioteca"].unique().tolist()
+        short_libs = [_short_lib(l) for l in libs]
+        x = np.arange(len(libs))
+        n_ds = len(datasets)
+        width = 0.35
+        ds_colors  = ["#cccccc", "#888888"]
+        ds_hatches = ["", "//"]
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+
+        for j, ds in enumerate(datasets):
+            df_ds = df[df["Dataset"] == ds]
+            tempos, stds, fpss = [], [], []
+            for lib in libs:
+                row = df_ds[df_ds["Biblioteca"] == lib]
+                tempos.append(float(row["Tempo_medio_ms"].values[0]) if not row.empty else 0)
+                stds.append(float(row["Std_ms"].values[0]) if not row.empty and "Std_ms" in row.columns else 0)
+                fpss.append(float(row["FPS"].values[0]) if not row.empty else 0)
+
+            offset = (j - n_ds / 2 + 0.5) * width
+            ax1.bar(x + offset, tempos, width, yerr=stds, capsize=4,
+                    color=ds_colors[j], hatch=ds_hatches[j],
+                    edgecolor="black", label=ds, error_kw={"elinewidth": 1})
+            ax2.bar(x + offset, fpss, width,
+                    color=ds_colors[j], hatch=ds_hatches[j],
+                    edgecolor="black", label=ds)
+
+        for ax, ylabel, title in [
+            (ax1, "Tempo medio de inferencia (ms)", "Tempo de Inferencia por Biblioteca"),
+            (ax2, "FPS (quadros por segundo)",       "FPS por Biblioteca"),
+        ]:
+            ax.set_xticks(x)
+            ax.set_xticklabels(short_libs, rotation=15, ha="right", fontsize=9)
+            ax.set_ylabel(ylabel)
+            ax.set_title(title)
+            ax.legend(fontsize=8)
+            ax.grid(axis="y", linestyle=":", linewidth=0.5, color="gray")
+
+        ax1.set_yscale("log")
+        fig.suptitle("Desempenho por Biblioteca e Dataset", fontsize=11)
+    else:
+        libs = df["Biblioteca"].tolist()
+        x = np.arange(len(libs))
+        width = 0.35
+        fig, ax1 = plt.subplots(figsize=(8, 5))
+        ax2 = ax1.twinx()
+
+        for i, lib in enumerate(libs):
+            style = LIB_STYLES.get(lib, {"hatch": "", "color": "#aaaaaa", "edgecolor": "black"})
+            tempo = df.loc[df["Biblioteca"] == lib, "Tempo_medio_ms"].values[0]
+            fps   = df.loc[df["Biblioteca"] == lib, "FPS"].values[0]
+            ax1.bar(x[i] - width / 2, tempo, width,
+                    color=style["color"], hatch=style["hatch"], edgecolor=style["edgecolor"])
+            ax2.bar(x[i] + width / 2, fps, width,
+                    color="white", hatch=style["hatch"], edgecolor=style["edgecolor"])
+
+        ax1.set_ylabel("Tempo medio de inferencia (ms)")
+        ax2.set_ylabel("FPS (quadros por segundo)")
+        ax1.set_xticks(x)
+        ax1.set_xticklabels(libs, rotation=20, ha="right", fontsize=9)
+        ax1.set_title("Desempenho: Tempo de Inferencia e FPS por Biblioteca")
+
+        patches = [
+            Patch(facecolor=s["color"], hatch=s["hatch"], edgecolor="black", label=lib)
+            for lib, s in LIB_STYLES.items() if lib in libs
+        ]
+        ax1.legend(handles=patches, fontsize=8, loc="upper left")
 
     _save(fig, "performance_combined.png")
 
@@ -103,33 +144,69 @@ def plot_performance(df: pd.DataFrame):
 # ---------------------------------------------------------------------------
 
 def plot_memory(df: pd.DataFrame):
+    from matplotlib.patches import Patch
+
     df = df.dropna(subset=["Memoria_pico_MB"])
     if df.empty:
         print("  [AVISO] Sem dados de memoria. Pulando grafico.")
         return
 
-    libs = df["Biblioteca"].tolist()
-    x = np.arange(len(libs))
-    fig, ax = plt.subplots(figsize=(7, 4))
+    has_dataset = "Dataset" in df.columns and df["Dataset"].nunique() > 1
 
-    for i, lib in enumerate(libs):
-        style = LIB_STYLES.get(lib, {"hatch": "", "color": "#aaaaaa", "edgecolor": "black"})
-        val = df.loc[df["Biblioteca"] == lib, "Memoria_pico_MB"].values[0]
-        bar = ax.bar(x[i], val, color=style["color"], hatch=style["hatch"],
-                     edgecolor=style["edgecolor"])
-        ax.bar_label(bar, fmt="%.1f MB", fontsize=8)
+    if has_dataset:
+        datasets = df["Dataset"].unique()
+        libs = df["Biblioteca"].unique().tolist()
+        short_libs = [_short_lib(l) for l in libs]
+        x = np.arange(len(libs))
+        n_ds = len(datasets)
+        width = 0.35
+        ds_colors  = ["#cccccc", "#888888"]
+        ds_hatches = ["", "//"]
 
-    ax.set_ylabel("Pico de memoria (MB)")
-    ax.set_xticks(x)
-    ax.set_xticklabels(libs, rotation=20, ha="right", fontsize=9)
-    ax.set_title("Uso de Memoria por Biblioteca")
+        fig, ax = plt.subplots(figsize=(8, 5))
 
-    from matplotlib.patches import Patch
-    patches = [
-        Patch(facecolor=s["color"], hatch=s["hatch"], edgecolor="black", label=lib)
-        for lib, s in LIB_STYLES.items()
-    ]
-    ax.legend(handles=patches, fontsize=8)
+        for j, ds in enumerate(datasets):
+            df_ds = df[df["Dataset"] == ds]
+            vals = []
+            for lib in libs:
+                row = df_ds[df_ds["Biblioteca"] == lib]
+                vals.append(float(row["Memoria_pico_MB"].values[0]) if not row.empty else 0)
+
+            offset = (j - n_ds / 2 + 0.5) * width
+            bars = ax.bar(x + offset, vals, width,
+                          color=ds_colors[j], hatch=ds_hatches[j],
+                          edgecolor="black", label=ds)
+            ax.bar_label(bars, fmt="%.0f MB", fontsize=7, padding=2)
+
+        ax.set_ylabel("Pico de memoria (MB)")
+        ax.set_xticks(x)
+        ax.set_xticklabels(short_libs, rotation=15, ha="right", fontsize=9)
+        ax.set_title("Uso de Memoria por Biblioteca e Dataset")
+        ax.legend(fontsize=8)
+        ax.grid(axis="y", linestyle=":", linewidth=0.5, color="gray")
+    else:
+        libs = df["Biblioteca"].tolist()
+        x = np.arange(len(libs))
+        fig, ax = plt.subplots(figsize=(7, 4))
+
+        for i, lib in enumerate(libs):
+            style = LIB_STYLES.get(lib, {"hatch": "", "color": "#aaaaaa", "edgecolor": "black"})
+            val = df.loc[df["Biblioteca"] == lib, "Memoria_pico_MB"].values[0]
+            bar = ax.bar(x[i], val, color=style["color"], hatch=style["hatch"],
+                         edgecolor=style["edgecolor"])
+            ax.bar_label(bar, fmt="%.1f MB", fontsize=8)
+
+        ax.set_ylabel("Pico de memoria (MB)")
+        ax.set_xticks(x)
+        ax.set_xticklabels(libs, rotation=20, ha="right", fontsize=9)
+        ax.set_title("Uso de Memoria por Biblioteca")
+
+        patches = [
+            Patch(facecolor=s["color"], hatch=s["hatch"], edgecolor="black", label=lib)
+            for lib, s in LIB_STYLES.items() if lib in libs
+        ]
+        ax.legend(handles=patches, fontsize=8)
+
     _save(fig, "memory_usage.png")
 
 

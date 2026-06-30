@@ -1,19 +1,38 @@
 ============================================================
 Biblioteca : opencv
-Inicio     : 2026-06-05 14:29:37
+Inicio     : 2026-06-29 08:35:41
 ============================================================
-[2026-06-05 14:29:37] INFO: Benchmark iniciado | device=CPU | num_runs=50
-[2026-06-05 14:29:37] INFO: Warm-up concluido
-[2026-06-05 14:29:37] INFO: Memoria pico: 1.12 MB
+[2026-06-29 08:35:41] INFO: Benchmark iniciado | device=CPU
+[2026-06-29 08:35:41] INFO: Dataset=BasePropr | n_imagens=205 | device=CPU
 ------------------------------------------------------------
-[2026-06-05 14:29:37] SUMMARY
-  Tempo_medio_ms: 9.3400
-  FPS: 107.0700
-  Memoria_pico_MB: 1.1200
-  Faces_encontradas: 2
-  Device: CPU
+[2026-06-29 08:37:15] SUMMARY
+  Dataset: BasePropr
+  N_imagens: 205
+  Processadas: 188
+  Tempo_medio_ms: 399.6200
+  Std_ms: 420.2600
+  FPS: 2.5000
+  Memoria_pico_MB: None
+  Faces_detectadas: 619
+  Taxa_deteccao_media: 3.2900
+  Erros: 17
+------------------------------------------------------------
+[2026-06-29 08:37:15] INFO: Dataset=LFW | n_imagens=300 | device=CPU
+[2026-06-29 08:37:15] INFO: Warm-up concluido
+[2026-06-29 08:37:15] INFO: Memoria pico: 0.24 MB
+------------------------------------------------------------
+[2026-06-29 08:37:20] SUMMARY
+  Dataset: LFW
+  N_imagens: 300
+  Processadas: 300
+  Tempo_medio_ms: 6.6800
+  Std_ms: 1.4500
+  FPS: 149.7000
+  Memoria_pico_MB: 0.2400
+  Faces_detectadas: 324
+  Taxa_deteccao_media: 1.0800
   Erros: 0
 ------------------------------------------------------------
 ============================================================
-Fim        : 2026-06-05 14:29:37
+Fim        : 2026-06-29 08:37:20
 ============================================================

@@ -1,19 +1,38 @@
 ============================================================
 Biblioteca : deepface
-Inicio     : 2026-06-05 14:29:42
+Inicio     : 2026-06-29 08:50:37
 ============================================================
-[2026-06-05 14:29:42] INFO: Benchmark iniciado | device=CPU | num_runs=50
-[2026-06-05 14:29:49] INFO: Warm-up concluido
-[2026-06-05 14:29:53] INFO: Memoria pico: 51.25 MB
+[2026-06-29 08:50:37] INFO: Benchmark iniciado | device=CPU
+[2026-06-29 08:50:37] INFO: Dataset=BasePropr | n_imagens=205 | device=CPU
 ------------------------------------------------------------
-[2026-06-05 14:33:36] SUMMARY
-  Tempo_medio_ms: 4464.4700
-  FPS: 0.2200
-  Memoria_pico_MB: 51.2500
-  Faces_encontradas: 1
-  Device: CPU
+[2026-06-29 09:39:16] SUMMARY
+  Dataset: BasePropr
+  N_imagens: 205
+  Processadas: 188
+  Tempo_medio_ms: 15404.3600
+  Std_ms: 2940.1800
+  FPS: 0.0600
+  Memoria_pico_MB: None
+  Faces_detectadas: 188
+  Taxa_deteccao_media: 1.0000
+  Erros: 17
+------------------------------------------------------------
+[2026-06-29 09:39:16] INFO: Dataset=LFW | n_imagens=300 | device=CPU
+[2026-06-29 09:39:28] INFO: Warm-up concluido
+[2026-06-29 09:39:39] INFO: Memoria pico: 33.61 MB
+------------------------------------------------------------
+[2026-06-29 10:09:01] SUMMARY
+  Dataset: LFW
+  N_imagens: 300
+  Processadas: 300
+  Tempo_medio_ms: 5870.8200
+  Std_ms: 3458.1500
+  FPS: 0.1700
+  Memoria_pico_MB: 33.6100
+  Faces_detectadas: 398
+  Taxa_deteccao_media: 1.3300
   Erros: 0
 ------------------------------------------------------------
 ============================================================
-Fim        : 2026-06-05 14:33:36
+Fim        : 2026-06-29 10:09:01
 ============================================================

@@ -1,19 +1,38 @@
 ============================================================
 Biblioteca : dlib
-Inicio     : 2026-06-05 14:29:37
+Inicio     : 2026-06-29 08:37:20
 ============================================================
-[2026-06-05 14:29:37] INFO: Benchmark iniciado | device=CPU | num_runs=50
-[2026-06-05 14:29:37] INFO: Warm-up concluido
-[2026-06-05 14:29:37] INFO: Memoria pico: 1.12 MB
+[2026-06-29 08:37:20] INFO: Benchmark iniciado | device=CPU
+[2026-06-29 08:37:20] INFO: Dataset=BasePropr | n_imagens=205 | device=CPU
 ------------------------------------------------------------
-[2026-06-05 14:29:42] SUMMARY
-  Tempo_medio_ms: 85.3200
-  FPS: 11.7200
-  Memoria_pico_MB: 1.1200
-  Faces_encontradas: 1
-  Device: CPU
+[2026-06-29 08:50:31] SUMMARY
+  Dataset: BasePropr
+  N_imagens: 205
+  Processadas: 188
+  Tempo_medio_ms: 4132.1000
+  Std_ms: 2483.1400
+  FPS: 0.2400
+  Memoria_pico_MB: None
+  Faces_detectadas: 194
+  Taxa_deteccao_media: 1.0300
+  Erros: 17
+------------------------------------------------------------
+[2026-06-29 08:50:31] INFO: Dataset=LFW | n_imagens=300 | device=CPU
+[2026-06-29 08:50:31] INFO: Warm-up concluido
+[2026-06-29 08:50:31] INFO: Memoria pico: 0.24 MB
+------------------------------------------------------------
+[2026-06-29 08:50:37] SUMMARY
+  Dataset: LFW
+  N_imagens: 300
+  Processadas: 300
+  Tempo_medio_ms: 18.9800
+  Std_ms: 0.7200
+  FPS: 52.6900
+  Memoria_pico_MB: 0.2400
+  Faces_detectadas: 315
+  Taxa_deteccao_media: 1.0500
   Erros: 0
 ------------------------------------------------------------
 ============================================================
-Fim        : 2026-06-05 14:29:42
+Fim        : 2026-06-29 08:50:37
 ============================================================
